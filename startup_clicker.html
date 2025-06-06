@@ -96,26 +96,74 @@
 				{
 					name: 'Agile Workflow',
 					unlocked: false,
-					condition: () => units[0].level >= 10,
-					apply: () => (units[0].income *= 1.5),
+					dependency: units[0],
+					dependencyLevelRequired: 10,
+					dependencyStringBuilder() {
+						return `"${this.dependency.name}" has to be at least level ${this.dependencyLevelRequired}`;
+					},
+					condition() {
+						return this.dependency.level >= this.dependencyLevelRequired;
+					},
+					apply() {
+						this.dependency.income *= 1.5;
+					},
+					benefitStringBuilder() {
+						return `Income increased by 50%`;
+					},
 				},
 				{
 					name: 'Viral Campaign',
 					unlocked: false,
-					condition: () => units[1].level >= 10,
-					apply: () => (units[1].interval *= 0.5),
+					dependency: units[1],
+					dependencyLevelRequired: 10,
+					dependencyStringBuilder() {
+						return `"${this.dependency.name}" has to be at least level ${this.dependencyLevelRequired}`;
+					},
+
+					condition() {
+						return this.dependency.level >= this.dependencyLevelRequired;
+					},
+					apply() {
+						this.dependency.interval *= 0.5;
+					},
+					benefitStringBuilder() {
+						return `Interval reduced by 50%`;
+					},
 				},
 				{
 					name: 'CI/CD Pipeline',
 					unlocked: false,
-					condition: () => units[2].level >= 5,
-					apply: () => (units[2].interval *= 0.66),
+					dependency: units[2],
+					dependencyLevelRequired: 5,
+					dependencyStringBuilder() {
+						return `"${this.dependency.name}" has to be at least level ${this.dependencyLevelRequired}`;
+					},
+
+					condition() {
+						return this.dependency.level >= this.dependencyLevelRequired;
+					},
+					apply() {
+						this.dependency.interval *= 0.66;
+					},
+					benefitStringBuilder() {
+						return `Interval reduced by 1/3`;
+					},
 				},
 				{
 					name: 'Seed Round Funding',
 					unlocked: false,
-					condition: () => totalMoney >= 10000,
-					apply: () => (multiplier += 0.1),
+					dependency: { name: 'Total Earned', level: totalMoney },
+					dependencyLevelRequired: 10000,
+					dependencyStringBuilder() {
+						return `"${this.dependency.name}" has to be at least ${this.dependencyLevelRequired}`;
+					},
+					condition() {
+						return totalMoney >= this.dependencyLevelRequired;
+					},
+					apply: () => (multiplier += 0.15),
+					benefitStringBuilder() {
+						return `Total income increased by 15%`;
+					},
 				},
 			];
 
@@ -141,17 +189,17 @@
 					const div = document.createElement('div');
 					div.className = 'unit';
 					div.innerHTML = `
-                    <div>
-                        <strong>${unit.name}</strong><br>
-                        Level: ${unit.level} | Income: $${(unit.income * multiplier).toFixed(1)} / ${(
+			                  <div>
+			                      <strong>${unit.name}</strong><br>
+			                      Level: ${unit.level} | Income: $${(unit.income * multiplier).toFixed(1)} / ${(
 						unit.interval / 1000
 					).toFixed(1)}s
-                        <div class="progress-bar"><div class="progress-fill" id="progress${i}"></div></div>
-                    </div>
-                    <div>
-                        <button onclick="upgradeUnit(${i})">Upgrade ($${Math.ceil(unit.cost)})</button>
-                    </div>
-                `;
+			                      <div class="progress-bar"><div class="progress-fill" id="progress${i}"></div></div>
+			                  </div>
+			                  <div>
+			                      <button onclick="upgradeUnit(${i})">Upgrade ($${Math.ceil(unit.cost)})</button>
+			                  </div>
+			              `;
 					container.appendChild(div);
 				});
 			}
@@ -161,8 +209,12 @@
 				container.innerHTML = '';
 				upgrades.forEach((up, i) => {
 					const div = document.createElement('div');
-					div.className = 'upgrade' + (up.unlocked ? '' : ' locked');
-					div.innerHTML = `<strong>${up.name}</strong> ${up.unlocked ? '(Active)' : '(Locked)'}`;
+					div.className = 'upgrade' + (up.unlocked ? '' : ' locked.');
+					div.innerHTML = `<strong>${up.name}</strong> ${
+						up.unlocked
+							? '(Active) ' + up.benefitStringBuilder()
+							: '(Locked) ' + up.dependencyStringBuilder()
+					}`;
 					container.appendChild(div);
 				});
 			}
