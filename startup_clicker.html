@@ -1,186 +1,244 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Startup Tycoon Clicker</title>
-    <style>
-        body { font-family: Arial, sans-serif; background: #f4f4f4; padding: 20px; }
-        h1 { text-align: center; }
-        .section { background: white; padding: 15px; margin-bottom: 20px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .unit { display: flex; justify-content: space-between; margin: 10px 0; }
-        .progress-bar { height: 10px; background: #ccc; width: 100%; margin-top: 5px; position: relative; }
-        .progress-fill { height: 100%; background: #4caf50; width: 0%; }
-        button { padding: 5px 10px; margin-left: 10px; }
-        .upgrade, .prestige { margin-top: 10px; }
-        .locked { opacity: 0.4; }
-    </style>
-</head>
-<body>
-    <h1>Startup Tycoon Clicker</h1>
+	<head>
+		<meta charset="UTF-8" />
+		<title>Startup Tycoon Clicker</title>
+		<style>
+			body {
+				font-family: Arial, sans-serif;
+				background: #f4f4f4;
+				padding: 20px;
+			}
+			h1 {
+				text-align: center;
+			}
+			.section {
+				background: white;
+				padding: 15px;
+				margin-bottom: 20px;
+				border-radius: 8px;
+				box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+			}
+			.unit {
+				display: flex;
+				justify-content: space-between;
+				margin: 10px 0;
+			}
+			.progress-bar {
+				height: 10px;
+				background: #ccc;
+				width: 100%;
+				margin-top: 5px;
+				position: relative;
+			}
+			.progress-fill {
+				height: 100%;
+				background: #4caf50;
+				width: 0%;
+			}
+			button {
+				padding: 5px 10px;
+				margin-left: 10px;
+			}
+			.upgrade,
+			.prestige {
+				margin-top: 10px;
+			}
+			.locked {
+				opacity: 0.4;
+			}
+		</style>
+	</head>
+	<body>
+		<h1>Startup Tycoon Clicker</h1>
 
-    <div class="section">
-        <h2>Revenue: $<span id="money">0</span></h2>
-        <p>Total Earned: $<span id="totalMoney">0</span> | Multiplier: <span id="multiplier">1.0</span>x</p>
-        <button onclick="manualClick()">Pitch to Investor (+$<span id='clickIncome'>1</span>)</button>
-    </div>
+		<div class="section">
+			<h2>Revenue: $<span id="money">0</span></h2>
+			<p>Total Earned: $<span id="totalMoney">0</span> | Multiplier: <span id="multiplier">1.0</span>x</p>
+			<button onclick="manualClick()">Pitch to Investor (+$<span id="clickIncome">1</span>)</button>
+		</div>
 
-    <div class="section">
-        <h2>Departments</h2>
-        <div id="units"></div>
-    </div>
+		<div class="section">
+			<h2>Departments</h2>
+			<div id="units"></div>
+		</div>
 
-    <div class="section">
-        <h2>Tech Upgrades</h2>
-        <div id="upgrades"></div>
-    </div>
+		<div class="section">
+			<h2>Tech Upgrades</h2>
+			<div id="upgrades"></div>
+		</div>
 
-    <div class="section">
-        <h2>Prestige</h2>
-        <div class="prestige">
-            <button onclick="prestige()" id="prestigeButton" disabled>Sell Your Startup and Start a New One</button>
-            <p>Prestige Points: <span id="prestigePoints">0</span></p>
-        </div>
-    </div>
+		<div class="section">
+			<h2>Prestige</h2>
+			<div class="prestige">
+				<button onclick="prestige()" id="prestigeButton" disabled>Sell Your Startup and Start a New One</button>
+				<p>Prestige Points: <span id="prestigePoints">0</span></p>
+			</div>
+		</div>
 
-    <script>
-        let money = 0;
-        let totalMoney = 0;
-        let multiplier = 1.0;
-        let prestigePoints = 0;
+		<script>
+			let money = 0;
+			let totalMoney = 0;
+			let multiplier = 1.0;
+			let prestigePoints = 0;
 
-        const clickIncomeBase = 1;
-        const clickIncomeElement = document.getElementById("clickIncome");
+			const clickIncomeBase = 1;
+			const clickIncomeElement = document.getElementById('clickIncome');
 
-        const units = [
-            { name: "Build MVP", cost: 50, income: 1, interval: 3000, level: 0, progress: 0 },
-            { name: "Launch Marketing", cost: 150, income: 3, interval: 5000, level: 0, progress: 0 },
-            { name: "Hire Developers", cost: 500, income: 10, interval: 7000, level: 0, progress: 0 }
-        ];
-units.forEach(u => u.cost = Math.ceil(u.cost));
+			const units = [
+				{ name: 'Build MVP', cost: 50, income: 1, interval: 3000, level: 0, progress: 0 },
+				{ name: 'Launch Marketing', cost: 150, income: 3, interval: 5000, level: 0, progress: 0 },
+				{ name: 'Hire Developers', cost: 500, income: 10, interval: 7000, level: 0, progress: 0 },
+			];
+			units.forEach((u) => (u.cost = Math.ceil(u.cost)));
 
-        const upgrades = [
-            { name: "Agile Workflow", unlocked: false, condition: () => units[0].level >= 10, apply: () => units[0].income *= 1.5 },
-            { name: "Viral Campaign", unlocked: false, condition: () => units[1].level >= 10, apply: () => units[1].interval *= 0.5 },
-            { name: "CI/CD Pipeline", unlocked: false, condition: () => units[2].level >= 5, apply: () => units[2].interval *= 0.66 },
-            { name: "Seed Round Funding", unlocked: false, condition: () => totalMoney >= 10000, apply: () => multiplier += 0.1 }
-        ];
+			const upgrades = [
+				{
+					name: 'Agile Workflow',
+					unlocked: false,
+					condition: () => units[0].level >= 10,
+					apply: () => (units[0].income *= 1.5),
+				},
+				{
+					name: 'Viral Campaign',
+					unlocked: false,
+					condition: () => units[1].level >= 10,
+					apply: () => (units[1].interval *= 0.5),
+				},
+				{
+					name: 'CI/CD Pipeline',
+					unlocked: false,
+					condition: () => units[2].level >= 5,
+					apply: () => (units[2].interval *= 0.66),
+				},
+				{
+					name: 'Seed Round Funding',
+					unlocked: false,
+					condition: () => totalMoney >= 10000,
+					apply: () => (multiplier += 0.1),
+				},
+			];
 
-        function manualClick() {
-            let gain = clickIncomeBase * multiplier;
-            money = Math.round((money + gain) * 100) / 100;
-            totalMoney += gain;
-            updateDisplay();
-        }
+			function manualClick() {
+				let gain = clickIncomeBase * multiplier;
+				money = Math.round((money + gain) * 100) / 100;
+				totalMoney += gain;
+				updateDisplay();
+			}
 
-        function updateDisplay() {
-            document.getElementById("money").textContent = Math.floor(money);
-            document.getElementById("totalMoney").textContent = Math.floor(totalMoney);
-            document.getElementById("multiplier").textContent = multiplier.toFixed(2);
-            document.getElementById("prestigePoints").textContent = prestigePoints;
-            clickIncomeElement.textContent = (clickIncomeBase * multiplier).toFixed(0);
-        }
+			function updateDisplay() {
+				document.getElementById('money').textContent = Math.floor(money);
+				document.getElementById('totalMoney').textContent = Math.floor(totalMoney);
+				document.getElementById('multiplier').textContent = multiplier.toFixed(2);
+				document.getElementById('prestigePoints').textContent = prestigePoints;
+				clickIncomeElement.textContent = (clickIncomeBase * multiplier).toFixed(0);
+			}
 
-        function renderUnits() {
-            const container = document.getElementById("units");
-            container.innerHTML = "";
-            units.forEach((unit, i) => {
-                const div = document.createElement("div");
-                div.className = "unit";
-                div.innerHTML = `
+			function renderUnits() {
+				const container = document.getElementById('units');
+				container.innerHTML = '';
+				units.forEach((unit, i) => {
+					const div = document.createElement('div');
+					div.className = 'unit';
+					div.innerHTML = `
                     <div>
                         <strong>${unit.name}</strong><br>
-                        Level: ${unit.level} | Income: $${(unit.income * multiplier).toFixed(1)} / ${(unit.interval / 1000).toFixed(1)}s
+                        Level: ${unit.level} | Income: $${(unit.income * multiplier).toFixed(1)} / ${(
+						unit.interval / 1000
+					).toFixed(1)}s
                         <div class="progress-bar"><div class="progress-fill" id="progress${i}"></div></div>
                     </div>
                     <div>
                         <button onclick="upgradeUnit(${i})">Upgrade ($${Math.ceil(unit.cost)})</button>
                     </div>
                 `;
-                container.appendChild(div);
-            });
-        }
+					container.appendChild(div);
+				});
+			}
 
-        function renderUpgrades() {
-            const container = document.getElementById("upgrades");
-            container.innerHTML = "";
-            upgrades.forEach((up, i) => {
-                const div = document.createElement("div");
-                div.className = "upgrade" + (up.unlocked ? "" : " locked");
-                div.innerHTML = `<strong>${up.name}</strong> ${up.unlocked ? "(Active)" : "(Locked)"}`;
-                container.appendChild(div);
-            });
-        }
+			function renderUpgrades() {
+				const container = document.getElementById('upgrades');
+				container.innerHTML = '';
+				upgrades.forEach((up, i) => {
+					const div = document.createElement('div');
+					div.className = 'upgrade' + (up.unlocked ? '' : ' locked');
+					div.innerHTML = `<strong>${up.name}</strong> ${up.unlocked ? '(Active)' : '(Locked)'}`;
+					container.appendChild(div);
+				});
+			}
 
-        function upgradeUnit(index) {
-            let unit = units[index];
-    console.log("Click attempt: money =", money, "cost =", unit.cost);
-            if (money >= unit.cost) {
-                money -= unit.cost;
-                unit.level++;
-                unit.cost = Math.ceil(unit.cost * 1.15);
-                updateDisplay();
-                checkUpgrades();
-        
-            }
-        }
+			function upgradeUnit(index) {
+				let unit = units[index];
+				console.log('Click attempt: money =', money, 'cost =', unit.cost);
+				if (money >= unit.cost) {
+					money -= unit.cost;
+					unit.level++;
+					unit.cost = Math.ceil(unit.cost * 1.15);
+					updateDisplay();
+					checkUpgrades();
+				}
+			}
 
-        function checkUpgrades() {
-            upgrades.forEach(up => {
-                if (!up.unlocked && up.condition()) {
-                    up.unlocked = true;
-                    up.apply();
-                }
-            });
-            renderUpgrades();
-        }
+			function checkUpgrades() {
+				upgrades.forEach((up) => {
+					if (!up.unlocked && up.condition()) {
+						up.unlocked = true;
+						up.apply();
+					}
+				});
+				renderUpgrades();
+			}
 
-        function checkPrestige() {
-            if (totalMoney >= 100000) {
-                document.getElementById("prestigeButton").disabled = false;
-            }
-        }
+			function checkPrestige() {
+				if (totalMoney >= 100000) {
+					document.getElementById('prestigeButton').disabled = false;
+				}
+			}
 
-        function prestige() {
-            let gainedPoints = Math.floor(totalMoney / 50000);
-            if (gainedPoints > 0) {
-                prestigePoints += gainedPoints;
-                multiplier = 1 + (prestigePoints * 0.1);
-                money = 0;
-                totalMoney = 0;
-                units.forEach(u => { u.level = 0; u.cost = u.cost / Math.pow(1.15, u.level); });
-                upgrades.forEach(up => up.unlocked = false);
-                renderUnits(); // initial render
-                renderUpgrades();
-                updateDisplay();
-                alert(`You gained ${gainedPoints} prestige point(s)!`);
-            }
-        }
+			function prestige() {
+				let gainedPoints = Math.floor(totalMoney / 50000);
+				if (gainedPoints > 0) {
+					prestigePoints += gainedPoints;
+					multiplier = 1 + prestigePoints * 0.1;
+					money = 0;
+					totalMoney = 0;
+					units.forEach((u) => {
+						u.level = 0;
+						u.cost = u.cost / Math.pow(1.15, u.level);
+					});
+					upgrades.forEach((up) => (up.unlocked = false));
+					renderUnits(); // initial render
+					renderUpgrades();
+					updateDisplay();
+					alert(`You gained ${gainedPoints} prestige point(s)!`);
+				}
+			}
 
-        function gameLoop() {
-            units.forEach((unit, i) => {
-                if (unit.level > 0) {
-                    unit.progress += 100;
-                    if (unit.progress >= unit.interval) {
-                        let gain = unit.income * unit.level * multiplier;
-                        money = Math.round((money + gain) * 100) / 100;
-                        totalMoney += gain;
-                        unit.progress = 0;
-                    }
-                    const fill = document.getElementById("progress" + i);
-                    if (fill) fill.style.width = ((unit.progress / unit.interval) * 100) + "%";
-                }
-            });
-            checkUpgrades();
-        
-            checkPrestige();
-            updateDisplay();
-        }
+			function gameLoop() {
+				units.forEach((unit, i) => {
+					if (unit.level > 0) {
+						unit.progress += 100;
+						if (unit.progress >= unit.interval) {
+							let gain = unit.income * unit.level * multiplier;
+							money = Math.round((money + gain) * 100) / 100;
+							totalMoney += gain;
+							unit.progress = 0;
+						}
+						const fill = document.getElementById('progress' + i);
+						if (fill) fill.style.width = (unit.progress / unit.interval) * 100 + '%';
+					}
+				});
+				checkUpgrades();
 
-        setInterval(gameLoop, 100);
-setInterval(renderUnits, 2000);
-        renderUnits(); // initial render
-        renderUpgrades();
-        updateDisplay();
-    </script>
-</body>
+				checkPrestige();
+				updateDisplay();
+			}
+
+			setInterval(gameLoop, 100);
+			setInterval(renderUnits, 2000);
+			renderUnits(); // initial render
+			renderUpgrades();
+			updateDisplay();
+		</script>
+	</body>
 </html>
